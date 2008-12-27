@@ -1,5 +1,0 @@
-- make test for Net::INET6Glue::FTP
-- make sockhost, peerhost return IPv4 format instead of mapped IPv4 in
-  when called for patched IO::Socket::INET
-- make IO::Socket::INET use IPv4 addr first if getaddrinfo returns 
-  IPv6 and IPv4

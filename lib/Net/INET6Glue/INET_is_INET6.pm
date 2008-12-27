@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package Net::INET6Glue::INET_is_INET6;
-our $VERSION = 0.1;
+our $VERSION = 0.2;
 
 ############################################################################
 # copy IO::Socket::INET to IO::Socket::INET4
@@ -25,8 +25,8 @@ L<IO::Socket::INET6>
 
  use Net::INET6Glue::INET_is_INET6;
  use LWP::Simple;
- print get( '[::1]:80' );
- print get( 'ipv6.google.com' );
+ print get( 'http://[::1]:80' );
+ print get( 'http://ipv6.google.com' );
 
 =head1 DESCRIPTION
 
