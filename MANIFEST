@@ -1,0 +1,8 @@
+COPYRIGHT
+lib/Net/INET6Glue.pm
+lib/Net/INET6Glue/FTP.pm
+lib/Net/INET6Glue/INET_is_INET6.pm
+Makefile.PL
+MANIFEST
+t/inet_is_inet6.t
+TODO
