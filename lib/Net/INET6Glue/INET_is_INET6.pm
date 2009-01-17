@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package Net::INET6Glue::INET_is_INET6;
-our $VERSION = 0.2;
+our $VERSION = 0.3;
 
 ############################################################################
 # copy IO::Socket::INET to IO::Socket::INET4
@@ -11,8 +11,22 @@ use IO::Socket::INET;
 use IO::Socket::INET6;
 $INC{'IO/Socket/INET4.pm'} = $INC{'IO/Socket/INET.pm'};
 $INC{'IO/Socket/INET.pm'} = $INC{'IO/Socket/INET6.pm'};
-%{IO::Socket::INET4::} = %{IO::Socket::INET::};
-%{IO::Socket::INET::} = %{IO::Socket::INET6::};
+
+# copy subs
+for ( keys %{IO::Socket::INET::} ) {
+	no strict 'refs';
+	no warnings 'redefine';
+	*{'IO::Socket::INET4::'.$_} = \&{ "IO::Socket::INET::$_" } 
+		if *{$IO::Socket::INET::{$_}}{CODE};
+}
+
+for ( keys %{IO::Socket::INET6::} ) {
+	no strict 'refs';
+	no warnings 'redefine';
+	*{'IO::Socket::INET::'.$_} = \&{ "IO::Socket::INET6::$_" } 
+		if *{$IO::Socket::INET6::{$_}}{CODE};
+}
+
 
 1;
 
