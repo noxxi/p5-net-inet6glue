@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package Net::INET6Glue::FTP;
-our $VERSION = 0.2;
+our $VERSION = 0.3;
 
 ############################################################################
 # implement EPRT, EPSV for Net::FTP to support IPv6
