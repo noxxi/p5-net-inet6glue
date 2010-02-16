@@ -1,5 +1,5 @@
 package Net::INET6Glue;
-$VERSION = 0.3;
+$VERSION = 0.4;
 use Net::INET6Glue::INET_is_INET6;
 use Net::INET6Glue::FTP;
 1;

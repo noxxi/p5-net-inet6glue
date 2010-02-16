@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use IO::Socket::INET;
+use IO::Socket::INET6;
 use Net::INET6Glue::INET_is_INET6;
 
 # check if we can use ::1, e.g if the computer has IPv6 enabled
@@ -21,4 +22,4 @@ print "1..2\n";
 my $cl4 = IO::Socket::INET->new( '127.0.0.1:'.$l4->sockport );
 print ( $cl4 ? "ok\n" : "not ok # connect IPv4\n" );
 my $cl6 = IO::Socket::INET->new( '[::1]:'.$l6->sockport );
-print ( $cl6 ? "ok\n" : "not ok # connect IPv6\n" );
+print ( $cl6 ? "ok\n" : "not ok # connect IPv6: $!\n" );

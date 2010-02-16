@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package Net::INET6Glue::FTP;
-our $VERSION = 0.3;
+our $VERSION = 0.4;
 
 ############################################################################
 # implement EPRT, EPSV for Net::FTP to support IPv6
@@ -30,7 +30,8 @@ sub Net::FTP::eprt {
 			LocalAddr => $ftp->sockhost,
 		);
 		${*$ftp}{net_ftp_intern_port} = 1;
-		$port = "|2|".$listen->sockhost."|".$listen->sockport."|";
+		my $fam = ($listen->sockdomain == AF_INET) ? 1:2;
+		$port = "|$fam|".$listen->sockhost."|".$listen->sockport."|";
 	}
 	my $ok = $ftp->_EPRT($port);
 	${*$ftp}{net_ftp_port} = $port if $ok;
