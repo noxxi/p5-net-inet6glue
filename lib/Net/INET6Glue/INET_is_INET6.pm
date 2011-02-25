@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package Net::INET6Glue::INET_is_INET6;
-our $VERSION = 0.3;
+our $VERSION = 0.5;
 
 ############################################################################
 # copy IO::Socket::INET to IO::Socket::INET4
@@ -10,21 +10,21 @@ our $VERSION = 0.3;
 use IO::Socket::INET;
 use IO::Socket::INET6;
 $INC{'IO/Socket/INET4.pm'} = $INC{'IO/Socket/INET.pm'};
-$INC{'IO/Socket/INET.pm'} = $INC{'IO/Socket/INET6.pm'};
+$INC{'IO/Socket/INET.pm'}  = $INC{'IO/Socket/INET6.pm'};
 
-# copy subs
-for ( keys %{IO::Socket::INET::} ) {
+{
+	# copy subs
 	no strict 'refs';
 	no warnings 'redefine';
-	*{'IO::Socket::INET4::'.$_} = \&{ "IO::Socket::INET::$_" } 
-		if *{$IO::Socket::INET::{$_}}{CODE};
-}
+	for ( keys %{IO::Socket::INET::} ) {
+		ref(my $v = $IO::Socket::INET::{$_}) and next;
+		*{'IO::Socket::INET4::'.$_} = \&{ "IO::Socket::INET::$_" } if *{$v}{CODE};
+	}
 
-for ( keys %{IO::Socket::INET6::} ) {
-	no strict 'refs';
-	no warnings 'redefine';
-	*{'IO::Socket::INET::'.$_} = \&{ "IO::Socket::INET6::$_" } 
-		if *{$IO::Socket::INET6::{$_}}{CODE};
+	for ( keys %{IO::Socket::INET6::} ) {
+		ref(my $v = $IO::Socket::INET6::{$_}) and next;
+		*{'IO::Socket::INET::'.$_} = \&{ "IO::Socket::INET6::$_" } if *{$v}{CODE};
+	}
 }
 
 
