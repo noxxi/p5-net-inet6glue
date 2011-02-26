@@ -1,3 +1,6 @@
+0.5 2011/02/25
+- fix for IO::Socket::INET6 >=2.67
+
 0.4 2010/02/16
 - fix EPRT in Net::INET6Glue::FTP so that it can also be used
   with IPv4 (when eprt is explicitly called)
