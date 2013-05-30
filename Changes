@@ -1,3 +1,6 @@
+0.6 2013/05/30
+- add more meta information to Makefile.PL, based on patch from ktdreyer
+
 0.5 2011/02/25
 - fix for IO::Socket::INET6 >=2.67
 
