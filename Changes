@@ -1,3 +1,6 @@
+0.600_1 2013/05/31
+- set AUTHOR in Makefile.PL back from array to string, because array is
+  only supported in newer ExtUtils::MakeMaker versions
 0.6 2013/05/30
 - add more meta information to Makefile.PL, based on patch from ktdreyer
 

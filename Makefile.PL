@@ -9,7 +9,7 @@ my $xt = prompt(
 );
 WriteMakefile(
     NAME => 'Net::INET6Glue',
-    AUTHOR => [ "Steffen Ullrich <sullr@cpan.org>" ],
+    AUTHOR => "Steffen Ullrich <sullr@cpan.org>",
     LICENSE => 'perl',
     VERSION_FROM => 'lib/Net/INET6Glue.pm',
     PREREQ_PM => {
