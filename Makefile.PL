@@ -21,7 +21,7 @@ WriteMakefile(
 	    license     => 'http://dev.perl.org/licenses/',
 	    homepage    => 'https://github.com/noxxi/p5-net-inet6glue',
 	    bugtracker  => 'https://rt.cpan.org/Dist/Display.html?Queue=Net-INET6Glue',
-	    Repository  => 'https://github.com/noxxi/p5-net-inet6glue',
+	    repository  => 'https://github.com/noxxi/p5-net-inet6glue',
 	},
     },
     $xt =~m{^y}i ? ( test => { TESTS => 't/*.t t/external/*.t' }):(),
