@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package Net::INET6Glue::FTP;
-our $VERSION = 0.4;
+our $VERSION = 0.5;
 
 ############################################################################
 # implement EPRT, EPSV for Net::FTP to support IPv6
@@ -10,94 +10,104 @@ our $VERSION = 0.4;
 use Net::INET6Glue::INET_is_INET6;
 use Net::FTP; # tested with version 2.77
 BEGIN {
-	$Net::FTP::VERSION eq '2.77' 
-		or warn "Not tested with Net::FTP version $Net::FTP::VERSION";
-}	
+    $Net::FTP::VERSION eq '2.77' 
+	or warn "Not tested with Net::FTP version $Net::FTP::VERSION";
+}   
 
 use Socket;
 use Carp 'croak';
 
-# implement EPRT
-sub Net::FTP::_EPRT { shift->command("EPRT", @_)->response() == Net::FTP::CMD_OK }
-sub Net::FTP::eprt {
+if ( defined &Net::FTP::_EPRT ) {
+    # Net::SSLGlue::FTP implements IPv6 too
+    warn "somebody else already implements FTP IPv6 support - skipping ".
+	__PACKAGE__."\n";
+
+} else {
+    # implement EPRT
+    *Net::FTP::_EPRT = sub { 
+	shift->command("EPRT", @_)->response() == Net::FTP::CMD_OK 
+    };
+    *Net::FTP::eprt = sub {
 	@_ == 1 || @_ == 2 or croak 'usage: $ftp->eprt([PORT])';
 	my ($ftp,$port) = @_;
 	delete ${*$ftp}{net_ftp_intern_port};
 	unless ($port) {
-		my $listen = ${*$ftp}{net_ftp_listen} ||= IO::Socket::INET6->new(
-			Listen    => 1,
-			Timeout   => $ftp->timeout,
-			LocalAddr => $ftp->sockhost,
+	    my $listen = ${*$ftp}{net_ftp_listen} ||= 
+		$Net::INET6Glue::INET_is_INET6::INET6CLASS->new(
+		    Listen    => 1,
+		    Timeout   => $ftp->timeout,
+		    LocalAddr => $ftp->sockhost,
 		);
-		${*$ftp}{net_ftp_intern_port} = 1;
-		my $fam = ($listen->sockdomain == AF_INET) ? 1:2;
-		$port = "|$fam|".$listen->sockhost."|".$listen->sockport."|";
+	    ${*$ftp}{net_ftp_intern_port} = 1;
+	    my $fam = ($listen->sockdomain == AF_INET) ? 1:2;
+	    $port = "|$fam|".$listen->sockhost."|".$listen->sockport."|";
 	}
 	my $ok = $ftp->_EPRT($port);
 	${*$ftp}{net_ftp_port} = $port if $ok;
 	return $ok;
-}
+    };
 
-# implement EPSV
-sub Net::FTP::_EPSV { shift->command("EPSV", @_)->response() == Net::FTP::CMD_OK }
-sub Net::FTP::epsv {
+    # implement EPSV
+    *Net::FTP::_EPSV = sub { 
+	shift->command("EPSV", @_)->response() == Net::FTP::CMD_OK 
+    };
+    *Net::FTP::epsv = sub {
 	my $ftp = shift;
 	@_ and croak 'usage: $ftp->epsv()';
 	delete ${*$ftp}{net_ftp_intern_port};
 
 	$ftp->_EPSV && $ftp->message =~ m{\(([\x33-\x7e])\1\1(\d+)\1\)}
-		? ${*$ftp}{'net_ftp_pasv'} = $2
-		: undef;
-}
+	    ? ${*$ftp}{'net_ftp_pasv'} = $2
+	    : undef;
+    };
 
-{
-	# redefine PORT and PASV so that they use EPRT and EPSV if necessary
-	no warnings 'redefine';
-	my $old_port = \&Net::FTP::port;
-	*Net::FTP::port =sub {
-		goto &$old_port if $_[0]->sockdomain == AF_INET or @_<1 or @_>2;
-		goto &Net::FTP::eprt;
-	};
+    # redefine PORT and PASV so that they use EPRT and EPSV if necessary
+    no warnings 'redefine';
+    my $old_port = \&Net::FTP::port;
+    *Net::FTP::port =sub {
+	goto &$old_port if $_[0]->sockdomain == AF_INET or @_<1 or @_>2;
+	goto &Net::FTP::eprt;
+    };
 
-	my $old_pasv = \&Net::FTP::pasv;
-	*Net::FTP::pasv = sub {
-		goto &$old_pasv if $_[0]->sockdomain == AF_INET or @_<1 or @_>2;
-		goto &Net::FTP::epsv;
-	};
+    my $old_pasv = \&Net::FTP::pasv;
+    *Net::FTP::pasv = sub {
+	goto &$old_pasv if $_[0]->sockdomain == AF_INET or @_<1 or @_>2;
+	goto &Net::FTP::epsv;
+    };
 
-	# redefined _dataconn to make use of the data it got from EPSV
-	# copied and adapted from Net::FTP::_dataconn
-	my $old_dataconn = \&Net::FTP::_dataconn;
-	*Net::FTP::_dataconn = sub {
-		goto &$old_dataconn if $_[0]->sockdomain == AF_INET;
-		my $ftp = shift;
+    # redefined _dataconn to make use of the data it got from EPSV
+    # copied and adapted from Net::FTP::_dataconn
+    my $old_dataconn = \&Net::FTP::_dataconn;
+    *Net::FTP::_dataconn = sub {
+	goto &$old_dataconn if $_[0]->sockdomain == AF_INET;
+	my $ftp = shift;
 
-		my $pkg = "Net::FTP::" . $ftp->type;
-		eval "require $pkg";
-		$pkg =~ s/ /_/g;
-		delete ${*$ftp}{net_ftp_dataconn};
+	my $pkg = "Net::FTP::" . $ftp->type;
+	eval "require $pkg";
+	$pkg =~ s/ /_/g;
+	delete ${*$ftp}{net_ftp_dataconn};
 
-		my $data;
-		if ( my $port = ${*$ftp}{net_ftp_pasv} ) {
-			$data = $pkg->new(
-				PeerAddr  => $ftp->peerhost,
-				PeerPort  => $port,
-				LocalAddr => ${*$ftp}{net_ftp_localaddr},
-			);
-		} elsif (my $listen =  delete ${*$ftp}{net_ftp_listen}) {
-			$data = $listen->accept($pkg);
-			close($listen);
-		}
+	my $data;
+	if ( my $port = ${*$ftp}{net_ftp_pasv} ) {
+	    $data = $pkg->new(
+		PeerAddr  => $ftp->peerhost,
+		PeerPort  => $port,
+		LocalAddr => ${*$ftp}{net_ftp_localaddr},
+	    );
+	} elsif (my $listen =  delete ${*$ftp}{net_ftp_listen}) {
+	    $data = $listen->accept($pkg);
+	    close($listen);
+	}
 
-		return if ! $data;
+	return if ! $data;
 
-		$data->timeout($ftp->timeout);
-		${*$ftp}{net_ftp_dataconn} = $data;
-		${*$data} = "";
-		${*$data}{net_ftp_cmd} = $ftp;
-		${*$data}{net_ftp_blksize} = ${*$ftp}{net_ftp_blksize};
-		return $data;
-	};
+	$data->timeout($ftp->timeout);
+	${*$ftp}{net_ftp_dataconn} = $data;
+	${*$data} = "";
+	${*$data}{net_ftp_cmd} = $ftp;
+	${*$data}{net_ftp_blksize} = ${*$ftp}{net_ftp_blksize};
+	return $data;
+    };
 }
 
 1;
@@ -122,10 +132,9 @@ methods to make use of EPRT and EPSV on IPv6 connections.
 It also includes L<Net::INET6Glue::INET_is_INET6> to make the L<Net::FTP>
 sockets IPv6 capable.
 
-
 =head1 COPYRIGHT
 
-This module is copyright (c) 2008, Steffen Ullrich.
+This module is copyright (c) 2008..2014, Steffen Ullrich.
 All Rights Reserved.
 This module is free software. It may be used, redistributed and/or modified 
 under the same terms as Perl itself.

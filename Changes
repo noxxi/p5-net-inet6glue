@@ -1,3 +1,5 @@
+0.601 2014/01/14
+- add support for IO::Socket::IP instead of IO::Socket::INET6 and prefer it
 0.600_1 2013/05/31
 - set AUTHOR in Makefile.PL back from array to string, because array is
   only supported in newer ExtUtils::MakeMaker versions

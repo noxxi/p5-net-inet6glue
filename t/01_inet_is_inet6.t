@@ -7,15 +7,15 @@ use Net::INET6Glue::INET_is_INET6;
 # check if we can use ::1, e.g if the computer has IPv6 enabled
 my $l6 = IO::Socket::INET6->new( Listen => 1, LocalAddr => '::1');
 if ( ! $l6 ) {
-	print "1..0 # no IPv6 enabled on this computer\n";
-	exit
+    print "1..0 # no IPv6 enabled on this computer\n";
+    exit
 }
 
 # IPv4 should be still available in the next years
 my $l4 = IO::Socket::INET->new( Listen => 1, LocalAddr => '127.0.0.1' );
 if ( ! $l4 ) {
-	print "1..0 # no IPv4 on this computer\n";
-	exit
+    print "1..0 # no IPv4 on this computer\n";
+    exit
 }
 
 print "1..2\n";

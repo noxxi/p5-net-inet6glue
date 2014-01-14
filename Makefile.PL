@@ -7,13 +7,22 @@ my $xt = prompt(
     "[y/N]", 
     'n' 
 );
+
+my %INET6 = ( 'IO::Socket::IP' => 0.25 );
+if ( ! eval "require IO::Socket::IP" || $IO::Socket::IP::VERSION < 0.25
+    and eval "require IO::Socket::INET6" 
+    and $IO::Socket::INET6::VERSION >= 2.54 ) {
+    %INET6 = ( 'IO::Socket::INET6' => 2.54 );
+    warn "using IO::Socket::INET6 instead of IO::Socket::IP\n";
+}
+    
 WriteMakefile(
     NAME => 'Net::INET6Glue',
     AUTHOR => "Steffen Ullrich <sullr@cpan.org>",
     LICENSE => 'perl',
     VERSION_FROM => 'lib/Net/INET6Glue.pm',
     PREREQ_PM => {
-	'IO::Socket::INET6' => 2.54,
+	%INET6,
 	'Net::FTP' => 2.75,
     },
     META_MERGE => {
