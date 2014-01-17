@@ -1,14 +1,18 @@
 use strict;
 use warnings;
 use IO::Socket::INET;
-use IO::Socket::INET6;
 use Net::INET6Glue::INET_is_INET6;
 
 # check if we can use ::1, e.g if the computer has IPv6 enabled
-my $l6 = IO::Socket::INET6->new( Listen => 1, LocalAddr => '::1');
-if ( ! $l6 ) {
-    print "1..0 # no IPv6 enabled on this computer\n";
-    exit
+my $l6;
+for my $ioclass (qw(IO::Socket::IP IO::Socket::INET6)) {
+    eval "require $ioclass" or next;
+    $l6 = $ioclass->new( Listen => 1, LocalAddr => '::1');
+    if ( ! $l6 ) {
+	print "1..0 # no IPv6 enabled on this computer\n";
+	exit
+    }
+    last;
 }
 
 # IPv4 should be still available in the next years

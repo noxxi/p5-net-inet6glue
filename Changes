@@ -1,3 +1,5 @@
+0.602 2014/01/17
+- fix t/01_inet_is_inet6.t
 0.601 2014/01/14
 - add support for IO::Socket::IP instead of IO::Socket::INET6 and prefer it
 0.600_1 2013/05/31
