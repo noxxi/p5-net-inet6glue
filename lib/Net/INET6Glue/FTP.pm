@@ -7,11 +7,13 @@ our $VERSION = 0.5;
 # implement EPRT, EPSV for Net::FTP to support IPv6
 ############################################################################
 
+use List::Util qw(first);
 use Net::INET6Glue::INET_is_INET6;
-use Net::FTP; # tested with version 2.77
+use Net::FTP;
 BEGIN {
-    $Net::FTP::VERSION eq '2.77' 
-	or warn "Not tested with Net::FTP version $Net::FTP::VERSION";
+    my @tested = qw(2.77 2.79);
+    warn "Not tested with Net::FTP version $Net::FTP::VERSION"
+	unless first { $_ eq $Net::FTP::VERSION } @tested;
 }   
 
 use Socket;
