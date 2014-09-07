@@ -1,26 +1,25 @@
 use strict;
 use warnings;
 package Net::INET6Glue::FTP;
-our $VERSION = 0.5;
+our $VERSION = 0.6;
 
 ############################################################################
 # implement EPRT, EPSV for Net::FTP to support IPv6
 ############################################################################
 
-use List::Util qw(first);
 use Net::INET6Glue::INET_is_INET6;
-use Net::FTP;
+use Net::FTP; # tested with 2.77, 2.79
 BEGIN {
-    my @tested = qw(2.77 2.79);
-    warn "Not tested with Net::FTP version $Net::FTP::VERSION"
-	unless first { $_ eq $Net::FTP::VERSION } @tested;
+    my %tested = map { $_ => 1 } qw(2.77 2.79);
+    warn "Not tested with Net::FTP version $Net::FTP::VERSION" 
+	if ! $tested{$Net::FTP::VERSION};
 }   
 
 use Socket;
 use Carp 'croak';
 
 if ( defined &Net::FTP::_EPRT ) {
-    # Net::SSLGlue::FTP implements IPv6 too
+    # Net::SSLGlue::FTP and Net::FTP 2.80 implement IPv6 too
     warn "somebody else already implements FTP IPv6 support - skipping ".
 	__PACKAGE__."\n";
 
